@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN pip install uv
+
+COPY . .
+
+RUN uv sync
+
+CMD ["uv", "run", "python", "-m", "assistente_rag_lexml.main"]

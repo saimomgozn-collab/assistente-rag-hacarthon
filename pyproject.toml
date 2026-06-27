@@ -1,0 +1,31 @@
+[project]
+name = "assistente-rag-hacarthon"
+version = "0.1.0"
+description = "Assistente de Consulta à Legislação Brasileira via RAG"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "langchain>=0.1.0",
+    "faiss-cpu>=1.7.4",
+    "sentence-transformers>=2.2.2",
+    "openai>=1.12.0",
+    "python-dotenv>=1.0.1",
+    "pandas>=2.2.0",
+    "pypdf>=4.0.1",
+    "tiktoken>=0.6.0",
+    "langchain-community>=0.4.1",
+    "langchain-huggingface>=1.2.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.2.0",
+    "isort>=5.13.2",
+    "jupyter>=1.0.0"
+]
