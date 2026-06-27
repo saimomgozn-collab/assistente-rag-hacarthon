@@ -6,7 +6,7 @@ import sys
 import os
 import importlib.util
 
-# --- CARREGAMENTO FORÇADO DE MÓDULOS (Evita ModuleNotFoundError) ---
+# --- CARREGAMENTO DE MÓDULOS  ---
 def load_module_from_path(module_name, file_path):
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     module = importlib.util.module_from_spec(spec)
@@ -14,11 +14,11 @@ def load_module_from_path(module_name, file_path):
     spec.loader.exec_module(module)
     return module
 
-# Caminho absoluto para os seus arquivos locais
+# Caminho para os arquivos locais
 base_path = os.path.dirname(os.path.abspath(__file__))
 vs_path = os.path.join(base_path, "vector_store.py")
 
-# Carrega a função necessária sem depender do sistema de importação padrão
+# função sem depender do sistema de importação
 vector_store_mod = load_module_from_path("vector_store", vs_path)
 create_or_load_vector_store = vector_store_mod.create_or_load_vector_store
 
