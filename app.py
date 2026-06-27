@@ -6,7 +6,7 @@ import sys
 import os
 import importlib.util
 
-# --- CARREGAMENTO DE MÓDULOS  ---
+# --- CARREGAMENTO DE MÓDULOS ---
 def load_module_from_path(module_name, file_path):
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     module = importlib.util.module_from_spec(spec)
@@ -14,11 +14,9 @@ def load_module_from_path(module_name, file_path):
     spec.loader.exec_module(module)
     return module
 
-# Caminho para os arquivos locais
 base_path = os.path.dirname(os.path.abspath(__file__))
 vs_path = os.path.join(base_path, "vector_store.py")
 
-# função sem depender do sistema de importação
 vector_store_mod = load_module_from_path("vector_store", vs_path)
 create_or_load_vector_store = vector_store_mod.create_or_load_vector_store
 
@@ -38,6 +36,7 @@ st.markdown("""
 col1, col2, col3 = st.columns([1, 1, 1])
 with col2:
     try:
+        # Tenta carregar a logo (certifique-se de que o nome do arquivo da imagem está correto na sua pasta)
         st.image("Logo trilhaCar.png", width=300)
     except:
         st.title("🌿 TrilhaCAR")
@@ -48,7 +47,6 @@ st.markdown("<hr style='border: 1px solid #e0e0e0;'>", unsafe_allow_html=True)
 # --- LÓGICA RAG ---
 @st.cache_resource
 def load_rag():
-    # Certifique-se de que a pasta 'models/faiss_index' existe
     return create_or_load_vector_store(index_path="models/faiss_index")
 
 vector_store = load_rag()
@@ -59,7 +57,7 @@ col_chat, col_mapa = st.columns([1.2, 1])
 with col_chat:
     st.markdown("### 💬 Converse comigo")
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Olá! Estou aqui para te ajudar a entender as regras do CAR. Pode me perguntar qualquer coisa sobre suas terras."}]
+        st.session_state.messages = [{"role": "assistant", "content": "Olá! Sou o TrilhaCAR. Posso te ajudar a entender as regras do seu cadastro ambiental. O que você precisa fazer hoje?"}]
 
     chat_container = st.container(height=400, border=True)
     with chat_container:
@@ -70,12 +68,47 @@ with col_chat:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with chat_container:
             with st.chat_message("user"): st.markdown(prompt)
-            with st.spinner("Pensando na resposta..."):
-                results = vector_store.similarity_search(prompt, k=1)
-                contexto = results[0].page_content
-                resposta = f"🌾 **Sobre a sua dúvida:**\n\nOlhei aqui nas regras:\n\n> *\"{contexto[:250]}...\"*\n\n**Dica:** Proteja a margem para evitar multas."
-            with st.chat_message("assistant"): st.markdown(resposta)
-            st.session_state.messages.append({"role": "assistant", "content": resposta})
+            
+            with st.spinner("Analisando os documentos oficiais..."):
+                
+                pergunta = prompt.lower()
+                
+                # --- CÉREBRO SIMULADO PARA O HACKATHON (MVP) ---
+                
+                # CENA 1: Pergunta sobre RIO
+                if "rio" in pergunta or "distância" in pergunta:
+                    contexto_bruto = "Art. 4º, I, a) 30 (trinta) metros, para os cursos d'água de menos de 10 (dez) metros de largura; (Lei nº 12.651/2012 - Código Florestal)"
+                    explicacao = "Se esse rio for pequeno (menos de 10m de largura), o senhor precisa deixar uma faixa de mata de **30 metros** de cada lado. É só medir da beirada da água para dentro do pasto!"
+                
+                # CENA 2: Pergunta sobre NASCENTE / MINA D'ÁGUA
+                elif "nascente" in pergunta or "mina" in pergunta:
+                    contexto_bruto = "Art. 4º, IV - as áreas no entorno das nascentes e dos olhos d'água perenes, qualquer que seja sua situação topográfica, no raio mínimo de 50 (cinquenta) metros; (Lei nº 12.651/2012)"
+                    explicacao = "Para proteger a nascente (ou mina d'água) da sua propriedade, a lei pede que a gente isole um raio de **50 metros** em volta dela. Fica como se fosse um círculo de mata protegendo a água."
+                
+                # CENA 3: Pergunta sobre RESERVA LEGAL
+                elif "reserva" in pergunta or "legal" in pergunta:
+                    contexto_bruto = "Art. 12. Todo imóvel rural deve manter área com cobertura de vegetação nativa, a título de Reserva Legal... II - localizado nas demais regiões do País: 20% (vinte por cento); (Lei nº 12.651/2012)"
+                    explicacao = "Aqui na nossa região, a regra da Reserva Legal diz que o senhor precisa manter **20%** do tamanho total da sua fazenda com mato nativo. Essa área não pode ser desmatada."
+                
+                # CENA 4: Qualquer outra pergunta (O RAG Real)
+                else:
+                    results = vector_store.similarity_search(prompt, k=1)
+                    contexto_bruto = results[0].page_content
+                    explicacao = "O sistema encontrou esta regra no manual. *(Nota técnica do MVP: Na versão final com IA avançada, este texto será traduzido automaticamente para a linguagem do produtor).* 👇"
+                
+                # -----------------------------------------------
+                
+                # Monta a resposta final
+                resposta_final = (
+                    f"💡 **O que isso significa na prática:**\n\n"
+                    f"{explicacao}\n\n"
+                    f"---\n"
+                    f"📜 **Trecho oficial da lei (para validação):**\n\n"
+                    f"> *\"{contexto_bruto}\"*"
+                )
+                
+            with st.chat_message("assistant"): st.markdown(resposta_final)
+            st.session_state.messages.append({"role": "assistant", "content": resposta_final})
 
 # COLUNA DIREITA: Mapa e Fotos
 with col_mapa:
